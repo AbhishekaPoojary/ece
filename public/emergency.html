@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Person Interface</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #ff4444;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #cc0000;
+        }
+        #hospitalInfo {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #photoPreview img {
+            max-width: 200px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Emergency Person Interface</h1>
+    
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="location">Location:</label>
+        <input type="text" id="location" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="vehicleNumber">Vehicle Number:</label>
+        <input type="text" id="vehicleNumber" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="photo">Upload Photo:</label>
+        <input type="file" id="photo" accept="image/*" required>
+        <div id="photoPreview"></div>
+    </div>
+    
+    <div class="form-group">
+        <label for="emergency">Emergency Description:</label>
+        <textarea id="emergency" rows="4" required></textarea>
+    </div>
+    
+    <button onclick="sendEmergencyData()">Send Emergency Data</button>
+
+    <div id="hospitalInfo">
+        <h2>Hospital Information</h2>
+        <p id="hospitalDetails">Waiting for hospital information...</p>
+    </div>
+
+    <script>
+        const socket = io();
+
+        function sendEmergencyData() {
+            const photoInput = document.getElementById('photo');
+            const file = photoInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = {
+                        name: document.getElementById('name').value,
+                        location: document.getElementById('location').value,
+                        vehicleNumber: document.getElementById('vehicleNumber').value,
+                        photo: e.target.result,
+                        emergency: document.getElementById('emergency').value
+                    };
+
+                    if (!data.name || !data.location || !data.vehicleNumber || !data.photo || !data.emergency) {
+                        alert('Please fill in all fields');
+                        return;
+                    }
+
+                    socket.emit('emergency_data', data);
+                    alert('Emergency data sent!');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                alert('Please select a photo');
+                return;
+            }
+        }
+
+        // Preview uploaded photo
+        document.getElementById('photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.innerHTML = `<img src="${e.target.result}">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        socket.on('to_emergency', (hospitalInfo) => {
+            document.getElementById('hospitalDetails').innerHTML = `
+                <p><strong>Hospital Name:</strong> ${hospitalInfo.name}</p>
+                <p><strong>Address:</strong> ${hospitalInfo.address}</p>
+                <p><strong>Contact:</strong> ${hospitalInfo.contact}</p>
+                <p><strong>ETA:</strong> ${hospitalInfo.eta}</p>
+            `;
+        });
+    </script>
+</body>
+</html> 

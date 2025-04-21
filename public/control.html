@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Room Interface</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .emergency-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .emergency-info {
+            margin-top: 20px;
+        }
+        .photo-container img {
+            max-width: 300px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Control Room Interface</h1>
+
+    <div id="emergencyList">
+        <h2>Active Emergencies</h2>
+        <div id="emergencies"></div>
+    </div>
+
+    <div class="form-group">
+        <h2>Assign Hospital</h2>
+        <label for="hospitalName">Hospital Name:</label>
+        <input type="text" id="hospitalName" required>
+        
+        <label for="hospitalAddress">Hospital Address:</label>
+        <input type="text" id="hospitalAddress" required>
+        
+        <label for="hospitalContact">Contact Number:</label>
+        <input type="text" id="hospitalContact" required>
+        
+        <label for="eta">Estimated Time of Arrival:</label>
+        <input type="text" id="eta" required>
+        
+        <button onclick="assignHospital()">Assign Hospital</button>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentEmergency = null;
+
+        socket.on('to_control', (data) => {
+            currentEmergency = data;
+            const emergenciesDiv = document.getElementById('emergencies');
+            emergenciesDiv.innerHTML = `
+                <div class="emergency-card">
+                    <h3>Emergency Details</h3>
+                    <p><strong>Name:</strong> ${data.name}</p>
+                    <p><strong>Location:</strong> ${data.location}</p>
+                    <p><strong>Vehicle Number:</strong> ${data.vehicleNumber}</p>
+                    <p><strong>Emergency:</strong> ${data.emergency}</p>
+                    <div class="photo-container">
+                        <h4>Uploaded Photo:</h4>
+                        <img src="${data.photo}" alt="Emergency Photo">
+                    </div>
+                </div>
+            `;
+        });
+
+        function assignHospital() {
+            if (!currentEmergency) {
+                alert('No active emergency to assign hospital to');
+                return;
+            }
+
+            const hospitalInfo = {
+                name: document.getElementById('hospitalName').value,
+                address: document.getElementById('hospitalAddress').value,
+                contact: document.getElementById('hospitalContact').value,
+                eta: document.getElementById('eta').value
+            };
+
+            if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
+                alert('Please fill in all hospital information fields');
+                return;
+            }
+
+            socket.emit('hospital_info', {
+                hospital: hospitalInfo,
+                emergency: currentEmergency
+            });
+
+            alert('Hospital assigned successfully!');
+        }
+    </script>
+</body>
+</html> 

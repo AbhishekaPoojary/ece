@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hospital Interface</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .emergency-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .photo-container img {
+            max-width: 300px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-pending {
+            background-color: #ffd700;
+            color: #000;
+        }
+        .status-accepted {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status-rejected {
+            background-color: #f44336;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Hospital Interface</h1>
+
+    <div id="emergencyList">
+        <h2>Emergency Requests</h2>
+        <div id="emergencies"></div>
+    </div>
+
+   
+
+    <script>
+        const socket = io();
+        let currentEmergency = null;
+
+        socket.on('to_hospital', (data) => {
+            currentEmergency = data;
+            const emergenciesDiv = document.getElementById('emergencies');
+            emergenciesDiv.innerHTML = `
+                <div class="emergency-card">
+                    <h3>Emergency Details</h3>
+                    <p><strong>Name:</strong> ${data.name}</p>
+                    <p><strong>Location:</strong> ${data.location}</p>
+                    <p><strong>Vehicle Number:</strong> ${data.vehicleNumber}</p>
+                    <p><strong>Emergency:</strong> ${data.emergency}</p>
+                    <div class="photo-container">
+                        <h4>Uploaded Photo:</h4>
+                        <img src="${data.photo}" alt="Emergency Photo">
+                    </div>
+                </div>
+            `;
+        });
+
+        function sendHospitalResponse() {
+            if (!currentEmergency) {
+                alert('No active emergency to respond to');
+                return;
+            }
+
+            const status = document.getElementById('responseStatus').value;
+            const hospitalInfo = {
+                name: document.getElementById('hospitalName').value,
+                address: document.getElementById('hospitalAddress').value,
+                contact: document.getElementById('hospitalContact').value,
+                eta: document.getElementById('eta').value,
+                status: status
+            };
+
+            if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
+                alert('Please fill in all hospital information fields');
+                return;
+            }
+
+            socket.emit('hospital_response', {
+                hospital: hospitalInfo,
+                emergency: currentEmergency
+            });
+
+            alert('Hospital response sent successfully!');
+        }
+    </script>
+</body>
+</html>
+
+
