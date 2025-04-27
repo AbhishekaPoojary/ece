@@ -50,6 +50,25 @@
             border-radius: 4px;
             border: 1px solid #ddd;
         }
+        .arrival-status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .arrived {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .not-arrived {
+            background-color: #f44336;
+            color: white;
+        }
+        .pending {
+            background-color: #ffd700;
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -95,8 +114,20 @@
                         <h4>Uploaded Photo:</h4>
                         <img src="${data.photo}" alt="Emergency Photo">
                     </div>
+                    <div class="arrival-status pending" id="arrivalStatus">
+                        Arrival Status: Waiting for verification
+                    </div>
                 </div>
             `;
+        });
+
+        socket.on('arrival_verification', (data) => {
+            console.log('Received arrival verification:', data);
+            const arrivalStatus = document.getElementById('arrivalStatus');
+            if (arrivalStatus) {
+                arrivalStatus.className = `arrival-status ${data.hasArrived ? 'arrived' : 'not-arrived'}`;
+                arrivalStatus.textContent = `Arrival Status: ${data.hasArrived ? 'Yes' : 'No'} (${data.name} - ${data.vehicleNumber})`;
+            }
         });
 
         function assignHospital() {
@@ -114,6 +145,12 @@
 
             if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
                 alert('Please fill in all hospital information fields');
+                return;
+            }
+
+            // Validate address format
+            if (!hospitalInfo.address.trim()) {
+                alert('Please enter a valid hospital address');
                 return;
             }
 

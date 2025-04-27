@@ -137,6 +137,7 @@
                 <p><strong>Address:</strong> ${hospitalInfo.address}</p>
                 <p><strong>Contact:</strong> ${hospitalInfo.contact}</p>
                 <p><strong>ETA:</strong> ${hospitalInfo.eta}</p>
+                <p><strong>Location:</strong> <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospitalInfo.address)}" target="_blank">View on Google Maps</a></p>
             `;
         });
     </script>

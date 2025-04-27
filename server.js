@@ -12,6 +12,15 @@ app.get('/hospital', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'hospital.html'));
 });
 
+app.get('/control', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'control.html'));
+});
+
+app.get('/emergency', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'emergency.html'));
+});
+
+
 // Socket.io connection handling
 io.on('connection', (socket) => {
     console.log('A user connected');
@@ -40,6 +49,17 @@ io.on('connection', (socket) => {
             hospitalResponse: data.hospital
         });
         io.emit('to_emergency', data.hospital);
+    });
+
+    // Handle arrival verification from hospital
+    socket.on('arrival_verification', (data) => {
+        console.log('Arrival verification received:', data);
+        // Broadcast verification to control room
+        io.emit('arrival_verification', {
+            hasArrived: data.hasArrived,
+            name: data.emergency.name,
+            vehicleNumber: data.emergency.vehicleNumber
+        });
     });
 
     socket.on('disconnect', () => {

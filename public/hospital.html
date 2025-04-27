@@ -68,6 +68,28 @@
             background-color: #f44336;
             color: white;
         }
+        .verification-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .verify-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+        .verify-btn.yes {
+            background-color: #4CAF50;
+        }
+        .verify-btn.no {
+            background-color: #f44336;
+        }
+        .verify-btn:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
@@ -78,7 +100,15 @@
         <div id="emergencies"></div>
     </div>
 
-   
+    <div class="form-group" id="arrivalVerification" style="display: none;">
+        <h2>Patient Arrival Verification</h2>
+        <p><strong>Patient Name:</strong> <span id="patientName"></span></p>
+        <p><strong>Vehicle Number:</strong> <span id="patientVehicle"></span></p>
+        <div class="verification-buttons">
+            <button onclick="verifyArrival(true)" class="verify-btn yes">Yes</button>
+            <button onclick="verifyArrival(false)" class="verify-btn no">No</button>
+        </div>
+    </div>
 
     <script>
         const socket = io();
@@ -100,7 +130,28 @@
                     </div>
                 </div>
             `;
+
+            // Show arrival verification section
+            document.getElementById('arrivalVerification').style.display = 'block';
+            document.getElementById('patientName').textContent = data.name;
+            document.getElementById('patientVehicle').textContent = data.vehicleNumber;
         });
+
+        function verifyArrival(hasArrived) {
+            if (!currentEmergency) {
+                alert('No active emergency to verify');
+                return;
+            }
+
+            const verificationData = {
+                emergency: currentEmergency,
+                hasArrived: hasArrived
+            };
+
+            console.log('Sending verification:', verificationData);
+            socket.emit('arrival_verification', verificationData);
+            alert(`Verification sent to control room`);
+        }
 
         function sendHospitalResponse() {
             if (!currentEmergency) {
@@ -119,6 +170,12 @@
 
             if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
                 alert('Please fill in all hospital information fields');
+                return;
+            }
+
+            // Validate address format
+            if (!hospitalInfo.address.trim()) {
+                alert('Please enter a valid hospital address');
                 return;
             }
 
