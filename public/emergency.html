@@ -58,8 +58,10 @@
     </div>
     
     <div class="form-group">
-        <label for="location">Location:</label>
-        <input type="text" id="location" required>
+        <label for="location">Current Location:</label>
+        <div id="locationStatus">Getting your location...</div>
+        <input type="text" id="location" readonly>
+        <button onclick="getCurrentLocation()" style="background-color: #4CAF50; margin-top: 5px;">Refresh Location</button>
     </div>
     
     <div class="form-group">
@@ -87,10 +89,57 @@
 
     <script>
         const socket = io();
+        let currentLocation = null;
+
+        // Function to get current location
+        function getCurrentLocation() {
+            const locationStatus = document.getElementById('locationStatus');
+            locationStatus.textContent = 'Getting your location...';
+            
+            if (!navigator.geolocation) {
+                locationStatus.textContent = 'Geolocation is not supported by your browser';
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    currentLocation = `${latitude}, ${longitude}`;
+                    
+                    // Get address from coordinates using reverse geocoding
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const address = data.display_name;
+                            document.getElementById('location').value = address;
+                            locationStatus.textContent = 'Location updated successfully';
+                            locationStatus.style.color = '#4CAF50';
+                        })
+                        .catch(error => {
+                            document.getElementById('location').value = currentLocation;
+                            locationStatus.textContent = 'Got coordinates but could not get address';
+                            locationStatus.style.color = '#ff9800';
+                        });
+                },
+                (error) => {
+                    locationStatus.textContent = 'Error getting location: ' + error.message;
+                    locationStatus.style.color = '#f44336';
+                }
+            );
+        }
+
+        // Get location when page loads
+        window.onload = getCurrentLocation;
 
         function sendEmergencyData() {
             const photoInput = document.getElementById('photo');
             const file = photoInput.files[0];
+            
+            if (!currentLocation) {
+                alert('Please wait for location to be determined');
+                return;
+            }
             
             if (file) {
                 const reader = new FileReader();
@@ -98,6 +147,7 @@
                     const data = {
                         name: document.getElementById('name').value,
                         location: document.getElementById('location').value,
+                        coordinates: currentLocation,
                         vehicleNumber: document.getElementById('vehicleNumber').value,
                         photo: e.target.result,
                         emergency: document.getElementById('emergency').value
@@ -136,7 +186,6 @@
                 <p><strong>Hospital Name:</strong> ${hospitalInfo.name}</p>
                 <p><strong>Address:</strong> ${hospitalInfo.address}</p>
                 <p><strong>Contact:</strong> ${hospitalInfo.contact}</p>
-                <p><strong>ETA:</strong> ${hospitalInfo.eta}</p>
                 <p><strong>Location:</strong> <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hospitalInfo.address)}" target="_blank">View on Google Maps</a></p>
             `;
         });

@@ -69,6 +69,25 @@
             background-color: #ffd700;
             color: black;
         }
+        .hospital-options {
+            margin-bottom: 20px;
+        }
+        .hospital-option {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .hospital-option:hover {
+            background-color: #f5f5f5;
+        }
+        .hospital-address {
+            display: block;
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+            margin-left: 25px;
+        }
     </style>
 </head>
 <body>
@@ -81,17 +100,31 @@
 
     <div class="form-group">
         <h2>Assign Hospital</h2>
-        <label for="hospitalName">Hospital Name:</label>
-        <input type="text" id="hospitalName" required>
-        
-        <label for="hospitalAddress">Hospital Address:</label>
-        <input type="text" id="hospitalAddress" required>
-        
-        <label for="hospitalContact">Contact Number:</label>
-        <input type="text" id="hospitalContact" required>
-        
-        <label for="eta">Estimated Time of Arrival:</label>
-        <input type="text" id="eta" required>
+        <div class="hospital-options">
+            <div class="hospital-option">
+                <input type="radio" id="prakriya" name="hospital" value="Prakriya Hospitals">
+                <label for="prakriya">Prakriya Hospitals (4)<br>
+                <span class="hospital-address">Metro Pillar No 500, 8th Mile, Tumkur road Service road Nagasandra, Havanur Layout, Bagalakunte, Bengaluru, Karnataka 560073</span></label>
+            </div>
+
+            <div class="hospital-option">
+                <input type="radio" id="ashraya" name="hospital" value="Ashraya Hospitals">
+                <label for="ashraya">Ashraya Hospitals (4)<br>
+                <span class="hospital-address">Magadi Main Rd, Chandana layout, Sunkadakatte, Bengaluru, Karnataka 560091</span></label>
+            </div>
+
+            <div class="hospital-option">
+                <input type="radio" id="peopleTree" name="hospital" value="People Tree Hospitals">
+                <label for="peopleTree">People Tree Hospitals @ Dasarahalli<br>
+                <span class="hospital-address">13/4, Nelamangala - Majestic Service Rd, Prashanth Nagar, T. Dasarahalli, Bengaluru, Karnataka 560057</span></label>
+            </div>
+
+            <div class="hospital-option">
+                <input type="radio" id="sparsh" name="hospital" value="SPARSH Hospital">
+                <label for="sparsh">SPARSH Hospital Yeshwanthpur (5)<br>
+                <span class="hospital-address">4/1, 4/1, Tumkur Rd, Yeshwanthpur Industrial Area, Phase 1, Yeswanthpur, Bengaluru, Karnataka 560022</span></label>
+            </div>
+        </div>
         
         <button onclick="assignHospital()">Assign Hospital</button>
     </div>
@@ -136,23 +169,17 @@
                 return;
             }
 
+            const selectedHospital = document.querySelector('input[name="hospital"]:checked');
+            if (!selectedHospital) {
+                alert('Please select a hospital');
+                return;
+            }
+
             const hospitalInfo = {
-                name: document.getElementById('hospitalName').value,
-                address: document.getElementById('hospitalAddress').value,
-                contact: document.getElementById('hospitalContact').value,
-                eta: document.getElementById('eta').value
+                name: selectedHospital.value,
+                address: selectedHospital.nextElementSibling.querySelector('.hospital-address').textContent,
+                contact: "Emergency Contact: 108" // Default emergency contact
             };
-
-            if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
-                alert('Please fill in all hospital information fields');
-                return;
-            }
-
-            // Validate address format
-            if (!hospitalInfo.address.trim()) {
-                alert('Please enter a valid hospital address');
-                return;
-            }
 
             socket.emit('hospital_info', {
                 hospital: hospitalInfo,

@@ -164,11 +164,10 @@
                 name: document.getElementById('hospitalName').value,
                 address: document.getElementById('hospitalAddress').value,
                 contact: document.getElementById('hospitalContact').value,
-                eta: document.getElementById('eta').value,
                 status: status
             };
 
-            if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact || !hospitalInfo.eta) {
+            if (!hospitalInfo.name || !hospitalInfo.address || !hospitalInfo.contact) {
                 alert('Please fill in all hospital information fields');
                 return;
             }
